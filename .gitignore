@@ -65,3 +65,25 @@ target/
 # data
 *.npy
 *.parquet
+
+# prompt
+AFT招新*.md
+AGENTS.md
+
+# performance analysis files
+性能优化分析报告.md
+fastest_版本优化说明.md
+三版本性能对比总结.md
+numba_bug_详细分析.md
+bug_诊断流程图.md
+cache_bug_通俗解释.md
+performance_analysis.py
+test_numba_issue.py
+test_direct.py
+test_fastest_direct.py
+test_faster_direct.py
+benchmark_all_versions.py
+
+# solution files
+solution_faster.py
+solution.py
