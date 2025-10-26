@@ -1,22 +1,3 @@
-# ===== path fix so absolute imports work when loaded as "<dynamic>" =====
-import os, sys, types
-
-_CUR  = os.path.dirname(os.path.abspath(__file__))          # .../ops-challenge-fall-2025/src
-_ROOT = os.path.dirname(_CUR)                               # .../ops-challenge-fall-2025
-
-# 确保根目录和 src 都在 sys.path 里
-for p in (_ROOT, _CUR):
-    if p not in sys.path:
-        sys.path.insert(0, p)
-
-# 如果解释器没有识别 'src' 包，就手动注册一个
-if 'src' not in sys.modules:
-    pkg = types.ModuleType('src')
-    pkg.__path__ = [_CUR]
-    sys.modules['src'] = pkg
-# =======================================================================
-
-
 import numpy as np
 import pandas as pd
 from numba import njit
@@ -91,5 +72,3 @@ def ops_rolling_rank(input_path: str, window: int = 20) -> np.ndarray:
 
     ranks = _rolling_percentile_rank(codes, close_values, int(window), n_symbols)
     return ranks.reshape(-1, 1)
-
-
