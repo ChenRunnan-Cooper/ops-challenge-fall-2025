@@ -1,21 +1,25 @@
 import polars as pl
 import numpy as np
-from numba import jit, prange
+from numba import jit, prange, config
+
+# 关键配置：workqueue 在不均匀负载下更好
+config.THREADING_LAYER = 'workqueue'
 
 @jit(nopython=True, fastmath=True, nogil=True, parallel=True)
-def _rolling_rank_fast(values, window, out):
+def _rolling_rank_ultra_fast(values, window, out):
     """
-    高性能并行滚动排名 - 优化版
+    超高性能并行滚动排名
     
     关键优化：
-    1. 极简循环结构
-    2. 并行计算充分利用多核
-    3. fastmath 加速浮点运算
+    1. 单循环 prange，最大化并行效率
+    2. 最简洁的代码，让编译器自动优化
+    3. 避免不必要的中间变量
     """
     n = len(values)
+    w = window - 1  # 预计算
     
     for i in prange(n):
-        start = max(0, i - window + 1)
+        start = i - w if i >= w else 0
         current = values[i]
         rank = 0.0
         
@@ -30,18 +34,14 @@ def _rolling_rank_fast(values, window, out):
 class ops:
     @staticmethod
     def rolling_rank(col_or_expr, window: int) -> pl.Expr:
-        """高性能滚动排名"""
+        """超高性能滚动排名 - 消除分支优化"""
         def rolling_rank(s: pl.Series) -> pl.Series:
             values = s.to_numpy()
             result = np.empty(len(values), dtype=np.float32)
-            _rolling_rank_fast(values, window, result)
+            _rolling_rank_ultra_fast(values, window, result)
             return result
         
-        if isinstance(col_or_expr, str):
-            expr = pl.col(col_or_expr)
-        else:
-            expr = col_or_expr
-        
+        expr = pl.col(col_or_expr) if isinstance(col_or_expr, str) else col_or_expr
         return expr.map_batches(rolling_rank)
 
 
